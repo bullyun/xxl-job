@@ -18,6 +18,8 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 
 /**
@@ -35,8 +37,12 @@ public class JobThread extends Thread{
 	private volatile boolean toStop = false;
 	private String stopReason;
 
-    private boolean running = false;    // if running job
-	private int idleTimes = 0;			// idel times
+    private volatile boolean running = false;    // if running job
+	private volatile boolean breaking = false;
+	//private int idleTimes = 0;			// idel times
+	private AtomicInteger idleTimes = new AtomicInteger(0);
+
+	private static ThreadLocal<JobThread> currentJobThread = new ThreadLocal<>();
 
 
 	public JobThread(int jobId, IJobHandler handler) {
@@ -80,6 +86,11 @@ public class JobThread extends Thread{
 		 */
 		this.toStop = true;
 		this.stopReason = stopReason;
+		this.interrupt();
+	}
+
+	public boolean isStop() {
+		return toStop;
 	}
 
     /**
@@ -87,11 +98,37 @@ public class JobThread extends Thread{
      * @return
      */
     public boolean isRunningOrHasQueue() {
-        return running || triggerQueue.size()>0;
+        return running || triggerQueue.size() > 0;
     }
+
+	public void breakJob() {
+    	this.breaking = true;
+	}
+
+	public void continueJob() {
+    	this.breaking = false;
+	}
+
+	public boolean isBreaking() {
+    	return breaking;
+	}
+
+	public void resetIdleTimes() {
+    	idleTimes.getAndSet(0);
+	}
+
+	public boolean isIdleTimesOver() {
+		return idleTimes.getAndAdd(0) > 30;
+	}
+
+	public static JobThread getCurrentJobThread() {
+    	return currentJobThread.get();
+	}
 
     @Override
 	public void run() {
+
+		currentJobThread.set(this);
 
     	// init
     	try {
@@ -103,7 +140,7 @@ public class JobThread extends Thread{
 		// execute
 		while(!toStop){
 			running = false;
-			idleTimes++;
+			idleTimes.incrementAndGet();
 
             TriggerParam triggerParam = null;
             ReturnT<String> executeResult = null;
@@ -112,7 +149,8 @@ public class JobThread extends Thread{
 				triggerParam = triggerQueue.poll(3L, TimeUnit.SECONDS);
 				if (triggerParam!=null) {
 					running = true;
-					idleTimes = 0;
+					resetIdleTimes();
+
 					triggerLogIdSet.remove(triggerParam.getLogId());
 
 					// log filename, like "logPath/yyyy-MM-dd/9999.log"
@@ -123,7 +161,9 @@ public class JobThread extends Thread{
 					// execute
 					XxlJobLogger.log("<br>----------- xxl-job job execute start -----------<br>----------- Param:" + triggerParam.getExecutorParams());
 
-					if (triggerParam.getExecutorTimeout() > 0) {
+					if (breaking) {
+						executeResult = new ReturnT<String>(ReturnT.FAIL_CODE,  " [job not executed, in the job queue, breaked.]");
+					} else if (triggerParam.getExecutorTimeout() > 0) {
 						// limit timeout
 						Thread futureThread = null;
 						try {
@@ -131,7 +171,10 @@ public class JobThread extends Thread{
 							FutureTask<ReturnT<String>> futureTask = new FutureTask<ReturnT<String>>(new Callable<ReturnT<String>>() {
 								@Override
 								public ReturnT<String> call() throws Exception {
-									return handler.execute(triggerParamTmp.getExecutorParams());
+									currentJobThread.set(JobThread.this);
+									ReturnT<String> ret = handler.execute(triggerParamTmp.getExecutorParams());
+									currentJobThread.remove();
+									return ret;
 								}
 							});
 							futureThread = new Thread(futureTask);
@@ -164,9 +207,9 @@ public class JobThread extends Thread{
 					XxlJobLogger.log("<br>----------- xxl-job job execute end(finish) -----------<br>----------- ReturnT:" + executeResult);
 
 				} else {
-					if (idleTimes > 30) {
+					if (isIdleTimesOver()) {
 						if(triggerQueue.size() == 0) {	// avoid concurrent trigger causes jobId-lost
-							XxlJobExecutor.removeJobThread(jobId, "excutor idel times over limit.");
+							XxlJobExecutor.removeJobThread(jobId, "excutor idel times over limit.", false, false);
 						}
 					}
 				}
@@ -212,6 +255,8 @@ public class JobThread extends Thread{
 		} catch (Throwable e) {
 			logger.error(e.getMessage(), e);
 		}
+
+		currentJobThread.remove();
 
 		logger.info(">>>>>>>>>>> xxl-job JobThread stoped, hashCode:{}", Thread.currentThread());
 	}

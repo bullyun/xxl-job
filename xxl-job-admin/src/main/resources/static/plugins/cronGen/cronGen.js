@@ -1034,7 +1034,7 @@
         cronResult : function() {
             var result;
             var second = $("#secondHidden").val();
-            second = second== "" ? "*":second;
+            second = second== "" ? "0":second;
             var minute = $("#minHidden").val();
             minute = minute== "" ? "*":minute;
             var hour = $("#hourHidden").val();
@@ -1046,6 +1046,47 @@
             var week = $("#weekHidden").val();
             week = week== "" ? "?":week;
             var year = $("#yearHidden").val();
+
+            if (hour != "" && hour != "*") {
+                if(minute == "*") {
+                   minute = "0";
+                }
+            }
+            if (day != "" && day != "*") {
+                if (hour == "*") {
+                    hour = "0"
+                }
+                if (minute == "*") {
+                    minute = "0"
+                }
+            }
+
+            if (month != "" && month != "*") {
+                if (day == "*") {
+                    day = "0"
+                }
+                if (hour == "*") {
+                    hour = "0"
+                }
+                if (minute == "*") {
+                    minute = "0"
+                }
+            }
+            if (week != "" && week != "?") {
+                if (month == "*") {
+                    month = "0"
+                }
+                if (day == "*") {
+                    day = "0"
+                }
+                if (hour == "*") {
+                    hour = "0"
+                }
+                if (minute == "*") {
+                    minute = "0"
+                }
+            }
+
             if(year!="")
             {
                 result = second+" "+minute+" "+hour+" "+day+" "+month+" "+week+" "+year;

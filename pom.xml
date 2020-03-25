@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.xuxueli</groupId>
 	<artifactId>xxl-job</artifactId>
-	<version>2.1.2</version>
+	<version>2.1.2.11-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<name>${project.artifactId}</name>
@@ -139,4 +139,16 @@
 		</profile>
 	</profiles>
 
+	<distributionManagement>
+		<repository>
+			<id>manniu-repo</id>
+			<name>Release</name>
+			<url>http://10.12.16.4:8081/nexus/content/repositories/releases/</url>
+		</repository>
+		<snapshotRepository>
+			<id>manniu-repo</id>
+			<name>Snapshots</name>
+			<url>http://10.12.16.4:8081/nexus/content/repositories/snapshots/</url>
+		</snapshotRepository>
+	</distributionManagement>
 </project>

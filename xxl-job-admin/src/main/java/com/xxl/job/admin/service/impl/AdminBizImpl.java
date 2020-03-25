@@ -2,6 +2,7 @@ package com.xxl.job.admin.service.impl;
 
 import com.xxl.job.admin.core.model.XxlJobInfo;
 import com.xxl.job.admin.core.model.XxlJobLog;
+import com.xxl.job.admin.core.thread.JobRegistryMonitorHelper;
 import com.xxl.job.admin.core.thread.JobTriggerPoolHelper;
 import com.xxl.job.admin.core.trigger.TriggerTypeEnum;
 import com.xxl.job.admin.core.util.I18nUtil;
@@ -166,6 +167,7 @@ public class AdminBizImpl implements AdminBiz {
 
     private void freshGroupRegistryInfo(RegistryParam registryParam){
         // Under consideration, prevent affecting core tables
+        JobRegistryMonitorHelper.getInstance().refresh();
     }
 
 }

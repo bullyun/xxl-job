@@ -33,16 +33,16 @@ public class AdminBizClient implements AdminBiz {
 
     @Override
     public ReturnT<String> callback(List<HandleCallbackParam> callbackParamList) {
-        return XxlJobRemotingUtil.postBody(addressUrl+"api/callback", accessToken, callbackParamList, 3);
+        return XxlJobRemotingUtil.postBody(addressUrl+"api/callback", accessToken, callbackParamList, 5);
     }
 
     @Override
     public ReturnT<String> registry(RegistryParam registryParam) {
-        return XxlJobRemotingUtil.postBody(addressUrl + "api/registry", accessToken, registryParam, 3);
+        return XxlJobRemotingUtil.postBody(addressUrl + "api/registry", accessToken, registryParam, 5);
     }
 
     @Override
     public ReturnT<String> registryRemove(RegistryParam registryParam) {
-        return XxlJobRemotingUtil.postBody(addressUrl + "api/registryRemove", accessToken, registryParam, 3);
+        return XxlJobRemotingUtil.postBody(addressUrl + "api/registryRemove", accessToken, registryParam, 5);
     }
 }

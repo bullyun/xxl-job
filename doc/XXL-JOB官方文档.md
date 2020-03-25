@@ -415,7 +415,7 @@ XXL-JOB是一个分布式任务调度平台，其核心设计目标是开发迅�
 
 ### 1.6 环境
 - Maven3+
-- Jdk1.7+
+- Jdk1.8+
 - Mysql5.7+
 
 
@@ -1665,7 +1665,7 @@ Tips: 历史版本(V1.3.x)目前已经Release至稳定版本, 进入维护阶段
 - 24、任务列表交互优化，支持查看任务所属执行器的注册节点；
 - 25、项目依赖升级至较新稳定版本，如spring、spring-boot、mybatis、slf4j、groovy等等；
 
-### 6.27 版本 v2.1.2 Release Notes[2019-12-12]
+### 6.27 版本 v2.1.2.11-SNAPSHOT Release Notes[2019-12-12]
 - 1、方法任务支持：由原来基于JobHandler类任务开发方式，优化为支持基于方法的任务开发方式；因此，可以支持单个类中开发多个任务方法，进行类复用
 ```
 @XxlJob("demoJobHandler")

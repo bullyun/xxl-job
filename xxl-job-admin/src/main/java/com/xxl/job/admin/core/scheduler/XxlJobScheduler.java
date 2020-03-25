@@ -97,7 +97,7 @@ public class XxlJobScheduler  {
         referenceBean.setLoadBalance(LoadBalance.ROUND);
         referenceBean.setIface(ExecutorBiz.class);
         referenceBean.setVersion(null);
-        referenceBean.setTimeout(3000);
+        referenceBean.setTimeout(5000);
         referenceBean.setAddress(address);
         referenceBean.setAccessToken(XxlJobAdminConfig.getAdminConfig().getAccessToken());
         referenceBean.setInvokeCallback(null);

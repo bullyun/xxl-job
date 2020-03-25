@@ -77,11 +77,6 @@ public class XxlJobExecutor  {
 
         // init TriggerCallbackThread
         TriggerCallbackThread.getInstance().start();
-
-        // init executor-server
-        port = port>0?port: NetUtil.findAvailablePort(9999);
-        ip = (ip!=null&&ip.trim().length()>0)?ip: IpUtil.getIp();
-        initRpcProvider(ip, port, appName, accessToken);
     }
     public void destroy(){
         // destory executor-server
@@ -89,13 +84,12 @@ public class XxlJobExecutor  {
 
         // destory jobThreadRepository
         if (jobThreadRepository.size() > 0) {
-            for (Map.Entry<Integer, JobThread> item: jobThreadRepository.entrySet()) {
-                removeJobThread(item.getKey(), "web container destroy and kill the job.");
+            for (Integer key : new HashSet<>(jobThreadRepository.keySet())) {
+                removeJobThread(key, "web container destroy and kill the job.", true, true);
             }
             jobThreadRepository.clear();
         }
         jobHandlerRepository.clear();
-
 
         // destory JobLogFileCleanThread
         JobLogFileCleanThread.getInstance().toStop();
@@ -136,6 +130,10 @@ public class XxlJobExecutor  {
     private XxlRpcProviderFactory xxlRpcProviderFactory = null;
 
     private void initRpcProvider(String ip, int port, String appName, String accessToken) throws Exception {
+
+        if (xxlRpcProviderFactory != null) {
+            return;
+        }
 
         // init, provider factory
         String address = IpUtil.getIpPort(ip, port);
@@ -195,15 +193,49 @@ public class XxlJobExecutor  {
 
     }
 
-    private void stopRpcProvider() {
-        // stop provider factory
+    private void startRpcProvider() {
         try {
-            xxlRpcProviderFactory.stop();
+            port = port > 0 ? port : NetUtil.findAvailablePort(9999);
+            ip = (ip != null && ip.trim().length() > 0) ? ip : IpUtil.getIp();
+            initRpcProvider(ip, port, appName, accessToken);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
         }
     }
 
+    private void stopRpcProvider() {
+        // stop provider factory
+        try {
+            if (xxlRpcProviderFactory != null) {
+                xxlRpcProviderFactory.stop();
+                xxlRpcProviderFactory = null;
+            }
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+        }
+    }
+
+    public void breakJob() {
+        stopRpcProvider();
+        breakAllJobs();
+    }
+
+    public void continueJob() {
+        continueAllJobs();
+        startRpcProvider();
+    }
+
+    private void breakAllJobs() {
+        for (JobThread jobThread : new ArrayList<>(jobThreadRepository.values())) {
+            jobThread.breakJob();
+        }
+    }
+
+    private void continueAllJobs() {
+        for (JobThread jobThread : new ArrayList<>(jobThreadRepository.values())) {
+            jobThread.continueJob();
+        }
+    }
 
     // ---------------------- job handler repository ----------------------
     private static ConcurrentMap<String, IJobHandler> jobHandlerRepository = new ConcurrentHashMap<String, IJobHandler>();
@@ -218,29 +250,68 @@ public class XxlJobExecutor  {
 
     // ---------------------- job thread repository ----------------------
     private static ConcurrentMap<Integer, JobThread> jobThreadRepository = new ConcurrentHashMap<Integer, JobThread>();
+    private static String jobThreadLock = new String();
+
+    public static String getJobThreadLock() {
+        return jobThreadLock;
+    }
+
     public static JobThread registJobThread(int jobId, IJobHandler handler, String removeOldReason){
         JobThread newJobThread = new JobThread(jobId, handler);
         newJobThread.start();
         logger.info(">>>>>>>>>>> xxl-job regist JobThread success, jobId:{}, handler:{}", new Object[]{jobId, handler});
 
-        JobThread oldJobThread = jobThreadRepository.put(jobId, newJobThread);	// putIfAbsent | oh my god, map's put method return the old value!!!
+        JobThread oldJobThread = null;
+        synchronized (jobThreadLock) {
+            oldJobThread = jobThreadRepository.put(jobId, newJobThread);
+        }
+
         if (oldJobThread != null) {
             oldJobThread.toStop(removeOldReason);
-            oldJobThread.interrupt();
+            //这个地方不能等待，不然有死锁隐患
         }
 
         return newJobThread;
     }
-    public static void removeJobThread(int jobId, String removeOldReason){
-        JobThread oldJobThread = jobThreadRepository.remove(jobId);
-        if (oldJobThread != null) {
-            oldJobThread.toStop(removeOldReason);
-            oldJobThread.interrupt();
+    public static void removeJobThread(int jobId, String removeOldReason, boolean wait, boolean force){
+        JobThread oldJobThread = null;
+        synchronized (jobThreadLock) {
+            oldJobThread = jobThreadRepository.get(jobId);
+            if (oldJobThread == null) {
+                return;
+            }
+            if (force == false && oldJobThread.isIdleTimesOver() == false) {
+                return;
+            }
+            jobThreadRepository.remove(jobId);
+        }
+
+        oldJobThread.toStop(removeOldReason);
+        if (wait) {
+            try {
+                oldJobThread.join();
+            } catch (InterruptedException e) {
+                logger.error(e.getMessage(), e);
+            }
         }
     }
     public static JobThread loadJobThread(int jobId){
-        JobThread jobThread = jobThreadRepository.get(jobId);
-        return jobThread;
+        synchronized (jobThreadLock) {
+            JobThread jobThread = jobThreadRepository.get(jobId);
+            if (jobThread != null) {
+                jobThread.resetIdleTimes();
+            }
+            return jobThread;
+        }
+    }
+
+    //暂时屏蔽，不供外界使用，请使用JobExecutor.isBreadJob()
+    private static boolean isBreakJob() {
+        JobThread jobThread = JobThread.getCurrentJobThread();
+        if (jobThread != null) {
+            return jobThread.isStop() || jobThread.isBreaking();
+        }
+        return true;
     }
 
 }

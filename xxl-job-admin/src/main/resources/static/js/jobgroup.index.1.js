@@ -63,7 +63,7 @@ $(function() {
 			},
 			title : {
 				required : true,
-				rangelength:[4, 12]
+				rangelength:[4,64]
 			},
 			order : {
 				required : true,
@@ -170,7 +170,7 @@ $(function() {
 			},
 			title : {
 				required : true,
-				rangelength:[4, 12]
+				rangelength:[4,64]
 			},
 			order : {
 				required : true,

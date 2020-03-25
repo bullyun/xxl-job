@@ -85,7 +85,7 @@ public class JobRegistryMonitorHelper {
 						TimeUnit.SECONDS.sleep(RegistryConfig.BEAT_TIMEOUT);
 					} catch (InterruptedException e) {
 						if (!toStop) {
-							logger.error(">>>>>>>>>>> xxl-job, job registry monitor thread error:{}", e);
+							//logger.error(">>>>>>>>>>> xxl-job, job registry monitor thread error:{}", e);
 						}
 					}
 				}
@@ -106,6 +106,10 @@ public class JobRegistryMonitorHelper {
 		} catch (InterruptedException e) {
 			logger.error(e.getMessage(), e);
 		}
+	}
+
+	public void refresh() {
+		registryThread.interrupt();
 	}
 
 }

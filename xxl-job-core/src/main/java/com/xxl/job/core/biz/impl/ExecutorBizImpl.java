@@ -50,7 +50,7 @@ public class ExecutorBizImpl implements ExecutorBiz {
         // kill handlerThread, and create new one
         JobThread jobThread = XxlJobExecutor.loadJobThread(jobId);
         if (jobThread != null) {
-            XxlJobExecutor.removeJobThread(jobId, "scheduling center kill job.");
+            XxlJobExecutor.removeJobThread(jobId, "scheduling center kill job.", false, true);
             return ReturnT.SUCCESS;
         }
 
@@ -70,6 +70,7 @@ public class ExecutorBizImpl implements ExecutorBiz {
     public ReturnT<String> run(TriggerParam triggerParam) {
         // load old：jobHandler + jobThread
         JobThread jobThread = XxlJobExecutor.loadJobThread(triggerParam.getJobId());
+        JobThread jobSetNullThread = jobThread;
         IJobHandler jobHandler = jobThread!=null?jobThread.getHandler():null;
         String removeOldReason = null;
 
@@ -85,7 +86,7 @@ public class ExecutorBizImpl implements ExecutorBiz {
                 // change handler, need kill old thread
                 removeOldReason = "change jobhandler or glue type, and terminate the old job thread.";
 
-                jobThread = null;
+                jobSetNullThread = null;
                 jobHandler = null;
             }
 
@@ -106,7 +107,7 @@ public class ExecutorBizImpl implements ExecutorBiz {
                 // change handler or gluesource updated, need kill old thread
                 removeOldReason = "change job source or glue type, and terminate the old job thread.";
 
-                jobThread = null;
+                jobSetNullThread = null;
                 jobHandler = null;
             }
 
@@ -129,7 +130,7 @@ public class ExecutorBizImpl implements ExecutorBiz {
                 // change script or gluesource updated, need kill old thread
                 removeOldReason = "change job source or glue type, and terminate the old job thread.";
 
-                jobThread = null;
+                jobSetNullThread = null;
                 jobHandler = null;
             }
 
@@ -142,7 +143,7 @@ public class ExecutorBizImpl implements ExecutorBiz {
         }
 
         // executor block strategy
-        if (jobThread != null) {
+        if (jobThread != null && jobSetNullThread != null) {
             ExecutorBlockStrategyEnum blockStrategy = ExecutorBlockStrategyEnum.match(triggerParam.getExecutorBlockStrategy(), null);
             if (ExecutorBlockStrategyEnum.DISCARD_LATER == blockStrategy) {
                 // discard when running
@@ -154,7 +155,7 @@ public class ExecutorBizImpl implements ExecutorBiz {
                 if (jobThread.isRunningOrHasQueue()) {
                     removeOldReason = "block strategy effect：" + ExecutorBlockStrategyEnum.COVER_EARLY.getTitle();
 
-                    jobThread = null;
+                    jobSetNullThread = null;
                 }
             } else {
                 // just queue trigger
@@ -162,8 +163,20 @@ public class ExecutorBizImpl implements ExecutorBiz {
         }
 
         // replace thread (new or exists invalid)
-        if (jobThread == null) {
-            jobThread = XxlJobExecutor.registJobThread(triggerParam.getJobId(), jobHandler, removeOldReason);
+        if (jobSetNullThread == null) {
+            synchronized (XxlJobExecutor.getJobThreadLock()) {
+                if (jobThread != null) {
+                    //换执行线程
+                    jobThread = XxlJobExecutor.registJobThread(triggerParam.getJobId(), jobHandler, removeOldReason);
+                } else {
+                    jobThread = XxlJobExecutor.loadJobThread(triggerParam.getJobId());
+                    if (jobThread == null) {
+                        jobThread = XxlJobExecutor.registJobThread(triggerParam.getJobId(), jobHandler, removeOldReason);
+                    } else {
+                        //前面的执行过程中，另一个线程已经创建jobThread，就不需要重复创建了
+                    }
+                }
+            }
         }
 
         // push data to queue
