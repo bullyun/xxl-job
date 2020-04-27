@@ -50,7 +50,8 @@ CREATE TABLE `xxl_job_log` (
   `alarm_status` tinyint(4) NOT NULL DEFAULT '0' COMMENT '告警状态：0-默认、1-无需告警、2-告警成功、3-告警失败',
   PRIMARY KEY (`id`),
   KEY `I_trigger_time` (`trigger_time`),
-  KEY `I_handle_code` (`handle_code`)
+  KEY `I_handle_code` (`handle_code`),
+  KEY `I_trigger_handle_code` (`trigger_code`,`handle_code`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE `xxl_job_log_report` (

@@ -228,15 +228,15 @@
 	</delete>
 
 	<select id="findFailJobLogIds" resultType="long" >
-		SELECT id FROM `xxl_job_log`
-		WHERE !(
-			(trigger_code in (0, 200) and handle_code = 0)
-			OR
-			(handle_code = 200)
+		SELECT DISTINCT id FROM (
+		(
+		SELECT id FROM `xxl_job_log` WHERE trigger_code >= 201 AND `alarm_status` = 0 AND handle_code>= 201 LIMIT 500
 		)
-		AND `alarm_status` = 0
-		ORDER BY id ASC
-		LIMIT #{pagesize}
+		UNION ALL
+		(
+		SELECT id FROM `xxl_job_log` WHERE trigger_code=200 AND handle_code>= 201 AND `alarm_status` = 0 LIMIT 500
+		)
+		) as newId LIMIT #{pagesize}
 	</select>
 
 	<update id="updateAlarmStatus" >
