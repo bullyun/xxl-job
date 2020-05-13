@@ -36,6 +36,8 @@
 
 		<groovy.version>2.5.8</groovy.version>
 
+		<apache.httpclient.version>4.5.3</apache.httpclient.version>
+
 		<maven-source-plugin.version>3.2.0</maven-source-plugin.version>
 		<maven-javadoc-plugin.version>3.1.1</maven-javadoc-plugin.version>
 		<maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>

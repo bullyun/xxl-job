@@ -230,7 +230,7 @@
 	<select id="findFailJobLogIds" resultType="long" >
 		SELECT DISTINCT id FROM (
 		(
-		SELECT id FROM `xxl_job_log` WHERE trigger_code >= 201 AND `alarm_status` = 0 AND handle_code>= 201 LIMIT 500
+		SELECT id FROM `xxl_job_log` WHERE trigger_code >= 201 AND `alarm_status` = 0 AND handle_code = 0 LIMIT 500
 		)
 		UNION ALL
 		(

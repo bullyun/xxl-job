@@ -65,6 +65,12 @@ public class XxlJobAdminConfig implements InitializingBean, DisposableBean {
     @Value("${xxl.job.logretentiondays}")
     private int logretentiondays;
 
+    @Value("${xxl.job.alarm.dingding.enable}")
+    private Boolean alarmDingDingEnable;
+
+    @Value("${xxl.job.alarm.webhook.type}")
+    private String webhookType;
+
     // dao, service
 
     @Resource
@@ -77,6 +83,8 @@ public class XxlJobAdminConfig implements InitializingBean, DisposableBean {
     private XxlJobGroupDao xxlJobGroupDao;
     @Resource
     private XxlJobLogReportDao xxlJobLogReportDao;
+    @Resource
+    private XxlJobWebhookDao xxlJobWebhookDao;
     @Resource
     private JavaMailSender mailSender;
     @Resource
@@ -116,6 +124,14 @@ public class XxlJobAdminConfig implements InitializingBean, DisposableBean {
         return logretentiondays;
     }
 
+    public Boolean getAlarmDingDingEnable() {
+        return alarmDingDingEnable;
+    }
+
+    public String getWebhookType() {
+        return webhookType;
+    }
+
     public XxlJobLogDao getXxlJobLogDao() {
         return xxlJobLogDao;
     }
@@ -144,4 +160,7 @@ public class XxlJobAdminConfig implements InitializingBean, DisposableBean {
         return dataSource;
     }
 
+    public XxlJobWebhookDao getXxlJobWebhookDao() {
+        return xxlJobWebhookDao;
+    }
 }

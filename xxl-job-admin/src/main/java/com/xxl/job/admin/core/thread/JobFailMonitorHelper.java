@@ -4,19 +4,20 @@ import com.xxl.job.admin.core.conf.XxlJobAdminConfig;
 import com.xxl.job.admin.core.model.XxlJobGroup;
 import com.xxl.job.admin.core.model.XxlJobInfo;
 import com.xxl.job.admin.core.model.XxlJobLog;
+import com.xxl.job.admin.core.model.XxlJobWebhook;
 import com.xxl.job.admin.core.trigger.TriggerTypeEnum;
+import com.xxl.job.admin.core.util.HttpClientSend;
 import com.xxl.job.admin.core.util.I18nUtil;
+import com.xxl.job.admin.core.util.JacksonUtil;
 import com.xxl.job.core.biz.model.ReturnT;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.mail.javamail.MimeMessageHelper;
 
 import javax.mail.internet.MimeMessage;
+import java.net.InetAddress;
 import java.text.MessageFormat;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -26,6 +27,8 @@ import java.util.concurrent.TimeUnit;
  */
 public class JobFailMonitorHelper {
 	private static Logger logger = LoggerFactory.getLogger(JobFailMonitorHelper.class);
+
+	private String webHookUrl = null;
 	
 	private static JobFailMonitorHelper instance = new JobFailMonitorHelper();
 	public static JobFailMonitorHelper getInstance(){
@@ -68,7 +71,7 @@ public class JobFailMonitorHelper {
 
 								// 2、fail alarm monitor
 								int newAlarmStatus = 0;		// 告警状态：0-默认、-1=锁定状态、1-无需告警、2-告警成功、3-告警失败
-								if (info!=null && info.getAlarmEmail()!=null && info.getAlarmEmail().trim().length()>0) {
+								if (info!=null) {
 									boolean alarmResult = true;
 									try {
 										alarmResult = failAlarm(info, log);
@@ -92,7 +95,7 @@ public class JobFailMonitorHelper {
 					}
 
                     try {
-                        TimeUnit.SECONDS.sleep(10);
+                        TimeUnit.SECONDS.sleep(30);
                     } catch (Exception e) {
                         if (!toStop) {
                             logger.error(e.getMessage(), e);
@@ -200,10 +203,61 @@ public class JobFailMonitorHelper {
 			}
 		}
 
-		// do something, custom alarm strategy, such as sms
+		// send monitor dingding
+		if (info !=null && XxlJobAdminConfig.getAdminConfig().getAlarmDingDingEnable()) {
+			try {
+				StringBuffer alarmContentBuffer = new StringBuffer("告警任务JobId: " + info.getId()+ "\r\n");
+				alarmContentBuffer.append("告警任务desc: " + info.getJobDesc()+ "\r\n");
+				alarmContentBuffer.append("告警任务Hander: " + info.getExecutorHandler()+ "\r\n");
+				alarmContentBuffer.append("告警时间: " + new Date()+ "\r\n");
+				alarmContentBuffer.append("告警地址: " + InetAddress.getLocalHost().getHostAddress()+ "\r\n");
+				alarmContentBuffer.append("告警任务日志ID: " + jobLog.getId()+ "\r\n");
+
+				if (webHookUrl == null) {
+					XxlJobWebhook xxlJobWebhook = XxlJobAdminConfig.getAdminConfig().getXxlJobWebhookDao()
+							.findByWebhookType(XxlJobAdminConfig.getAdminConfig().getWebhookType());
+					webHookUrl = xxlJobWebhook == null ? null : xxlJobWebhook.getWebhookUrl();
+				}
+
+				if (webHookUrl != null && webHookUrl.length() > 0) {
+					String result = HttpClientSend.postsend(webHookUrl, buildReqStr(alarmContentBuffer.toString(),
+							true, new ArrayList<String>()));
+					if (!result.contains("ok")){
+						logger.error(">>>>>>>>>>> xxl-job, job fail alarm dingding send error, JobLogId:{}", jobLog.getId(), result);
+					}
+				}
+
+			}catch (Exception e){
+				logger.error(">>>>>>>>>>> xxl-job, job fail alarm dingding send error, JobLogId:{}", jobLog.getId(), e);
+				alarmResult = false;
+			}
+		}
 
 
 		return alarmResult;
+	}
+
+	/**
+	 * 组装钉钉请求报文
+	 * @param content 通知内容
+	 * @param isAtAll 是否全部通知
+	 * @param mobileList 通知具体人的手机号码列表
+	 * @return
+	 */
+	private static String buildReqStr(String content, boolean isAtAll, List<String> mobileList) {
+		Map<String, String> contentMap = new HashMap<>();
+		contentMap.put("content", content);
+
+		Map<String, Object> atMap = new HashMap<>();
+		atMap.put("isAtAll", isAtAll);
+        atMap.put("atMobiles", mobileList);
+
+		Map<String, Object> reqMap = new HashMap<>();
+		reqMap.put("msgtype", "text");
+		reqMap.put("text", contentMap);
+		reqMap.put("at", atMap);
+
+		return JacksonUtil.writeValueAsString(reqMap);
 	}
 
 }
