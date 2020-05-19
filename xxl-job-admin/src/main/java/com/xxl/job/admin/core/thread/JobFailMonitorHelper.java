@@ -95,7 +95,7 @@ public class JobFailMonitorHelper {
 					}
 
                     try {
-                        TimeUnit.SECONDS.sleep(30);
+                        TimeUnit.SECONDS.sleep(10);
                     } catch (Exception e) {
                         if (!toStop) {
                             logger.error(e.getMessage(), e);
