@@ -213,6 +213,10 @@ public class JobFailMonitorHelper {
 				alarmContentBuffer.append("告警地址: " + InetAddress.getLocalHost().getHostAddress()+ "\r\n");
 				alarmContentBuffer.append("告警任务日志ID: " + jobLog.getId()+ "\r\n");
 
+				if (null != jobLog.getHandleMsg() && !jobLog.getHandleMsg().isEmpty()) {
+					alarmContentBuffer.append("告警任务异常: " + jobLog.getHandleMsg()+ "\r\n");
+				}
+
 				if (webHookUrl == null) {
 					XxlJobWebhook xxlJobWebhook = XxlJobAdminConfig.getAdminConfig().getXxlJobWebhookDao()
 							.findByWebhookType(XxlJobAdminConfig.getAdminConfig().getWebhookType());
