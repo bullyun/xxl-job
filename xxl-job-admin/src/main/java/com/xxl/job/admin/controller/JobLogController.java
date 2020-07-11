@@ -23,10 +23,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 /**
  * index controller
@@ -97,8 +95,16 @@ public class JobLogController {
 		if (filterTime!=null && filterTime.trim().length()>0) {
 			String[] temp = filterTime.split(" - ");
 			if (temp.length == 2) {
-				triggerTimeStart = DateUtil.parseDateTime(temp[0]);
-				triggerTimeEnd = DateUtil.parseDateTime(temp[1]);
+				Calendar rightStart = Calendar.getInstance();
+				rightStart.setTime(DateUtil.parseDateTime(temp[0]));
+				rightStart.add(Calendar.HOUR, -8);
+
+				Calendar rightEnd = Calendar.getInstance();
+				rightEnd.setTime(DateUtil.parseDateTime(temp[1]));
+				rightEnd.add(Calendar.HOUR, -8);
+
+				triggerTimeStart = rightStart.getTime();
+				triggerTimeEnd = rightEnd.getTime();
 			}
 		}
 		
