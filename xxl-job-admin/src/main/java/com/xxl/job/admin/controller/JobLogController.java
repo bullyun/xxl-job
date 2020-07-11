@@ -1,5 +1,6 @@
 package com.xxl.job.admin.controller;
 
+import com.xxl.job.admin.core.model.XxlJobLogExtend;
 import com.xxl.job.admin.core.scheduler.XxlJobScheduler;
 import com.xxl.job.admin.core.exception.XxlJobException;
 import com.xxl.job.admin.core.model.XxlJobGroup;
@@ -15,6 +16,7 @@ import com.xxl.job.core.biz.model.ReturnT;
 import com.xxl.job.core.util.DateUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -25,6 +27,7 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.function.Consumer;
 
 /**
  * index controller
@@ -111,12 +114,23 @@ public class JobLogController {
 		// page query
 		List<XxlJobLog> list = xxlJobLogDao.pageList(start, length, jobGroup, jobId, triggerTimeStart, triggerTimeEnd, logStatus);
 		int list_count = xxlJobLogDao.pageListCount(start, length, jobGroup, jobId, triggerTimeStart, triggerTimeEnd, logStatus);
+
+		List<XxlJobLogExtend> xxlJobLogExtends = new ArrayList<>(list.size());
+		for (XxlJobLog xxlJobLog: list) {
+			XxlJobLogExtend xxlJobLogExtend = new XxlJobLogExtend();
+			BeanUtils.copyProperties(xxlJobLog, xxlJobLogExtend);
+			XxlJobInfo xxlJobInfo = xxlJobInfoDao.loadById(xxlJobLog.getJobId());
+			if (null != xxlJobInfo) {
+				xxlJobLogExtend.setJobDesc(xxlJobInfo.getJobDesc());
+			}
+			xxlJobLogExtends.add(xxlJobLogExtend);
+		}
 		
 		// package result
 		Map<String, Object> maps = new HashMap<String, Object>();
 	    maps.put("recordsTotal", list_count);		// 总记录数
 	    maps.put("recordsFiltered", list_count);	// 过滤后的总记录数
-	    maps.put("data", list);  					// 分页列表
+	    maps.put("data", xxlJobLogExtends);  					// 分页列表
 		return maps;
 	}
 

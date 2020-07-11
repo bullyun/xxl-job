@@ -112,9 +112,10 @@ $(function() {
 						}
 					},
 					{ "data": 'jobGroup', "visible" : false},
+					{ "data": 'jobDesc',"width":'10%'},
 					{
 						"data": 'triggerTime',
-                        "width":'20%',
+                        "width":'15%',
 						"render": function ( data, type, row ) {
 							return data?moment(new Date(data)).format("YYYY-MM-DD HH:mm:ss"):"";
 						}
@@ -143,7 +144,7 @@ $(function() {
 					},
 	                { 
 	                	"data": 'handleTime',
-                        "width":'20%',
+                        "width":'15%',
 	                	"render": function ( data, type, row ) {
 	                		return data?moment(new Date(data)).format("YYYY-MM-DD HH:mm:ss"):"";
 	                	}

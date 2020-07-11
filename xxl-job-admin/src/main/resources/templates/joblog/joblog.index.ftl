@@ -88,6 +88,7 @@
 					            	<tr>
                                         <th name="jobId" >${I18n.jobinfo_field_id}</th>
                                         <th name="jobGroup" >jobGroup</th>
+                                        <th name="jobDesc" >${I18n.joblog_field_jobDesc}</th>
 										<#--<th name="executorAddress" >执行器地址</th>
 										<th name="glueType" >运行模式</th>
                                       	<th name="executorParam" >任务参数</th>-->
