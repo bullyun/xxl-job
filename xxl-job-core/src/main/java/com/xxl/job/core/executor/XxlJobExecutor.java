@@ -215,14 +215,26 @@ public class XxlJobExecutor  {
         }
     }
 
+    private void stopRpcProviderRegistry() {
+        ExecutorRegistryThread.getInstance().toStop();
+    }
+
     public void breakJob() {
         // In order to execute unregistered executor job, so don't stop rpc provider
         //stopRpcProvider();
+        stopRpcProviderRegistry();
         breakAllJobs();
     }
 
     public void continueJob() {
         continueAllJobs();
+        stopRpcProvider();
+        startRpcProvider();
+    }
+
+    public void continueJobNotRegistry() {
+        // start rpc provider but not registry
+        stopRpcProviderRegistry();
         startRpcProvider();
     }
 

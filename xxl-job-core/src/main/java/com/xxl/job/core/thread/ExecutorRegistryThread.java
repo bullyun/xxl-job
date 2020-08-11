@@ -35,7 +35,8 @@ public class ExecutorRegistryThread {
             return;
         }
 
-        toStop = false;
+        //start provider but not registry
+        //toStop = false;
         registryThread = new Thread(new Runnable() {
             @Override
             public void run() {
