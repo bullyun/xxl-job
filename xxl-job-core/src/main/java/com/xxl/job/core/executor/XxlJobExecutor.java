@@ -216,7 +216,8 @@ public class XxlJobExecutor  {
     }
 
     public void breakJob() {
-        stopRpcProvider();
+        // In order to execute unregistered executor job, so don't stop rpc provider
+        //stopRpcProvider();
         breakAllJobs();
     }
 
@@ -303,6 +304,10 @@ public class XxlJobExecutor  {
             }
             return jobThread;
         }
+    }
+
+    public static boolean isJobMustExecute() {
+        return JobThread.isJobMustExecute();
     }
 
     //暂时屏蔽，不供外界使用，请使用JobExecutor.isBreadJob()

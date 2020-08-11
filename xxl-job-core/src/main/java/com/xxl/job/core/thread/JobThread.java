@@ -44,6 +44,8 @@ public class JobThread extends Thread{
 
 	private static ThreadLocal<JobThread> currentJobThread = new ThreadLocal<>();
 
+	private static ThreadLocal<Boolean> jobMustExecute = new ThreadLocal<>();
+
 
 	public JobThread(int jobId, IJobHandler handler) {
 		this.jobId = jobId;
@@ -125,7 +127,12 @@ public class JobThread extends Thread{
     	return currentJobThread.get();
 	}
 
-    @Override
+	public static boolean isJobMustExecute() {
+    	Boolean mustExecute = jobMustExecute.get();
+		return mustExecute == null ? false : mustExecute;
+	}
+
+	@Override
 	public void run() {
 
 		currentJobThread.set(this);
@@ -153,6 +160,11 @@ public class JobThread extends Thread{
 
 					triggerLogIdSet.remove(triggerParam.getLogId());
 
+					// set this job is must execute property
+					if (triggerParam.getMustExecute()) {
+						jobMustExecute.set(true);
+					}
+
 					// log filename, like "logPath/yyyy-MM-dd/9999.log"
 					String logFileName = XxlJobFileAppender.makeLogFileName(new Date(triggerParam.getLogDateTime()), triggerParam.getLogId());
 					XxlJobFileAppender.contextHolder.set(logFileName);
@@ -161,7 +173,7 @@ public class JobThread extends Thread{
 					// execute
 					XxlJobLogger.log("<br>----------- xxl-job job execute start -----------<br>----------- Param:" + triggerParam.getExecutorParams());
 
-					if (breaking) {
+					if (breaking && !triggerParam.getMustExecute()) {
 						executeResult = new ReturnT<String>(ReturnT.FAIL_CODE,  " [job not executed, in the job queue, breaked.]");
 					} else if (triggerParam.getExecutorTimeout() > 0) {
 						// limit timeout
@@ -226,6 +238,10 @@ public class JobThread extends Thread{
 				XxlJobLogger.log("<br>----------- JobThread Exception:" + errorMsg + "<br>----------- xxl-job job execute end(error) -----------");
 			} finally {
                 if(triggerParam != null) {
+					// remove must execute property
+					if (triggerParam.getMustExecute()) {
+						jobMustExecute.remove();
+					}
                     // callback handler info
                     if (!toStop) {
                         // commonm
