@@ -181,26 +181,26 @@ public class JobFailMonitorHelper {
 					alarmContent);
 
 			Set<String> emailSet = new HashSet<String>(Arrays.asList(info.getAlarmEmail().split(",")));
-			for (String email: emailSet) {
-
-				// make mail
-				try {
-					MimeMessage mimeMessage = XxlJobAdminConfig.getAdminConfig().getMailSender().createMimeMessage();
-
-					MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true);
-					helper.setFrom(XxlJobAdminConfig.getAdminConfig().getEmailUserName(), personal);
-					helper.setTo(email);
-					helper.setSubject(title);
-					helper.setText(content, true);
-
-					XxlJobAdminConfig.getAdminConfig().getMailSender().send(mimeMessage);
-				} catch (Exception e) {
-					logger.error(">>>>>>>>>>> xxl-job, job fail alarm email send error, JobLogId:{}", jobLog.getId(), e);
-
-					alarmResult = false;
-				}
-
-			}
+//			for (String email: emailSet) {
+//
+//				// make mail
+//				try {
+//					MimeMessage mimeMessage = XxlJobAdminConfig.getAdminConfig().getMailSender().createMimeMessage();
+//
+//					MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true);
+//					helper.setFrom(XxlJobAdminConfig.getAdminConfig().getEmailUserName(), personal);
+//					helper.setTo(email);
+//					helper.setSubject(title);
+//					helper.setText(content, true);
+//
+//					XxlJobAdminConfig.getAdminConfig().getMailSender().send(mimeMessage);
+//				} catch (Exception e) {
+//					logger.error(">>>>>>>>>>> xxl-job, job fail alarm email send error, JobLogId:{}", jobLog.getId(), e);
+//
+//					alarmResult = false;
+//				}
+//
+//			}
 		}
 
 		// send monitor dingding
