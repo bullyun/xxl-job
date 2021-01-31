@@ -48,8 +48,55 @@ public class XxlJobTrigger {
         if (executorParam != null) {
             jobInfo.setExecutorParam(executorParam);
         }
-        int finalFailRetryCount = failRetryCount>=0?failRetryCount:jobInfo.getExecutorFailRetryCount();
         XxlJobGroup group = XxlJobAdminConfig.getAdminConfig().getXxlJobGroupDao().load(jobInfo.getJobGroup());
+        processTrigger(jobInfo, group, triggerType, failRetryCount, executorShardingParam);
+    }
+
+    /**
+     * specify trigger job
+     *
+     * @param jobId
+     * @param host
+     * @param port
+     * @param triggerType
+     * @param failRetryCount
+     * 			>=0: use this param
+     * 			<0: use param from job info config
+     * @param executorShardingParam
+     * @param executorParam
+     *          null: use job param
+     *          not null: cover job param
+     */
+    public static void specifyTrigger(int jobId, String host, int port, TriggerTypeEnum triggerType, int failRetryCount,
+                                      String executorShardingParam, String executorParam) {
+        // load data
+        XxlJobInfo jobInfo = XxlJobAdminConfig.getAdminConfig().getXxlJobInfoDao().loadById(jobId);
+        if (jobInfo == null) {
+            logger.warn(">>>>>>>>>>>> trigger fail, jobId invalid，jobId={}", jobId);
+            return;
+        }
+        if (executorParam != null) {
+            jobInfo.setExecutorParam(executorParam);
+        }
+        XxlJobGroup group = XxlJobAdminConfig.getAdminConfig().getXxlJobGroupDao().load(jobInfo.getJobGroup());
+        if (triggerType.equals(TriggerTypeEnum.MANUAL_SPECIFY)) {
+            group.setAddressList(host + ":" + port);
+        }
+        processTrigger(jobInfo, group, triggerType, failRetryCount, executorShardingParam);
+    }
+
+    /**
+     *  @param jobInfo
+     * @param group
+     * @param triggerType
+     * @param failRetryCount
+ * 			>=0: use this param
+ * 			<0: use param from job info config
+     * @param executorShardingParam
+     */
+    private static void processTrigger(XxlJobInfo jobInfo, XxlJobGroup group, TriggerTypeEnum triggerType, int failRetryCount,
+                                       String executorShardingParam) {
+        int finalFailRetryCount = failRetryCount>=0?failRetryCount:jobInfo.getExecutorFailRetryCount();
 
         // sharding param
         int[] shardingParam = null;
@@ -73,7 +120,6 @@ public class XxlJobTrigger {
             }
             processTrigger(group, jobInfo, finalFailRetryCount, triggerType, shardingParam[0], shardingParam[1]);
         }
-
     }
 
     private static boolean isNumeric(String str){
@@ -122,6 +168,9 @@ public class XxlJobTrigger {
         triggerParam.setGlueUpdatetime(jobInfo.getGlueUpdatetime().getTime());
         triggerParam.setBroadcastIndex(index);
         triggerParam.setBroadcastTotal(total);
+        if (triggerType.equals(TriggerTypeEnum.MANUAL_SPECIFY)) {
+            triggerParam.setMustExecute(true);
+        }
 
         // 3、init address
         String address = null;
