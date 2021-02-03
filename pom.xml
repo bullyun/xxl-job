@@ -145,12 +145,12 @@
 		<repository>
 			<id>manniu-repo</id>
 			<name>Release</name>
-			<url>http://10.12.1.184:8081/nexus/content/repositories/releases/</url>
+			<url>http://10.12.16.4:8081/nexus/content/repositories/releases/</url>
 		</repository>
 		<snapshotRepository>
 			<id>manniu-repo</id>
 			<name>Snapshots</name>
-			<url>http://10.12.1.184:8081/nexus/content/repositories/snapshots/</url>
+			<url>http://10.12.16.4:8081/nexus/content/repositories/snapshots/</url>
 		</snapshotRepository>
 	</distributionManagement>
 </project>

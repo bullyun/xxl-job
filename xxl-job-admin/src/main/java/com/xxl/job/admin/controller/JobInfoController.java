@@ -9,7 +9,6 @@ import com.xxl.job.admin.core.route.ExecutorRouteStrategyEnum;
 import com.xxl.job.admin.core.thread.JobTriggerPoolHelper;
 import com.xxl.job.admin.core.trigger.TriggerTypeEnum;
 import com.xxl.job.admin.core.util.I18nUtil;
-import com.xxl.job.admin.core.util.IpUtil;
 import com.xxl.job.admin.dao.XxlJobGroupDao;
 import com.xxl.job.admin.service.LoginService;
 import com.xxl.job.admin.service.XxlJobService;
@@ -140,26 +139,6 @@ public class JobInfoController {
 		}
 
 		JobTriggerPoolHelper.trigger(id, TriggerTypeEnum.MANUAL, -1, null, executorParam);
-		return ReturnT.SUCCESS;
-	}
-
-	@RequestMapping("/specify/trigger")
-	@ResponseBody
-	//@PermissionLimit(limit = false)
-	public ReturnT<String> specifyTriggerJob(int id, String host, Integer port, String executorParam) {
-		if (!IpUtil.isIp(host)) {
-			return new ReturnT<String>(ReturnT.FAIL_CODE, "host invalid");
-		}
-		if (port == null || port <= 0) {
-			return new ReturnT<String>(ReturnT.FAIL_CODE, "port invalid");
-		}
-
-		// force cover job param
-		if (executorParam == null) {
-			executorParam = "";
-		}
-
-		JobTriggerPoolHelper.specifyTrigger(id, host, port, TriggerTypeEnum.MANUAL_SPECIFY, -1, null, executorParam);
 		return ReturnT.SUCCESS;
 	}
 

@@ -10,11 +10,6 @@ public class TriggerParam implements Serializable{
 
     private int jobId;
 
-    /**
-     * 是否必须执行，用于没有在调度中心注册的执行器的任务的执行
-     */
-    private boolean mustExecute;
-
     private String executorHandler;
     private String executorParams;
     private String executorBlockStrategy;
@@ -37,14 +32,6 @@ public class TriggerParam implements Serializable{
 
     public void setJobId(int jobId) {
         this.jobId = jobId;
-    }
-
-    public boolean getMustExecute() {
-        return mustExecute;
-    }
-
-    public void setMustExecute(boolean mustExecute) {
-        this.mustExecute = mustExecute;
     }
 
     public String getExecutorHandler() {
@@ -140,7 +127,6 @@ public class TriggerParam implements Serializable{
     public String toString() {
         return "TriggerParam{" +
                 "jobId=" + jobId +
-                ", mustExecute='" + mustExecute + '\'' +
                 ", executorHandler='" + executorHandler + '\'' +
                 ", executorParams='" + executorParams + '\'' +
                 ", executorBlockStrategy='" + executorBlockStrategy + '\'' +

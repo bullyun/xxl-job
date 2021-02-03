@@ -215,26 +215,13 @@ public class XxlJobExecutor  {
         }
     }
 
-    private void stopRpcProviderRegistry() {
-        ExecutorRegistryThread.getInstance().toStop();
-    }
-
     public void breakJob() {
-        // In order to execute unregistered executor job, so don't stop rpc provider
-        //stopRpcProvider();
-        stopRpcProviderRegistry();
+        stopRpcProvider();
         breakAllJobs();
     }
 
     public void continueJob() {
         continueAllJobs();
-        stopRpcProvider();
-        startRpcProvider();
-    }
-
-    public void continueJobNotRegistry() {
-        // start rpc provider but not registry
-        stopRpcProviderRegistry();
         startRpcProvider();
     }
 
@@ -316,10 +303,6 @@ public class XxlJobExecutor  {
             }
             return jobThread;
         }
-    }
-
-    public static boolean isJobMustExecute() {
-        return JobThread.isJobMustExecute();
     }
 
     //暂时屏蔽，不供外界使用，请使用JobExecutor.isBreadJob()
