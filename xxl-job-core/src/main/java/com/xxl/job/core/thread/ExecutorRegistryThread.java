@@ -35,7 +35,8 @@ public class ExecutorRegistryThread {
             return;
         }
 
-        toStop = false;
+        //start provider but not registry, in finally {} will reset toStop state to init state
+        //toStop = false;
         registryThread = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -102,6 +103,9 @@ public class ExecutorRegistryThread {
                     if (!toStop) {
                         logger.error(e.getMessage(), e);
                     }
+                } finally {
+                    //reset to init state
+                    toStop = false;
                 }
                 logger.info(">>>>>>>>>>> xxl-job, executor registry thread destory.");
 

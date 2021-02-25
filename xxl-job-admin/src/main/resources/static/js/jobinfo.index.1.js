@@ -134,6 +134,7 @@ $(function() {
                                     '     </button>\n' +
                                     '     <ul class="dropdown-menu" role="menu" _id="'+ row.id +'" >\n' +
                                     '       <li><a href="javascript:void(0);" class="job_trigger" >'+ I18n.jobinfo_opt_run +'</a></li>\n' +
+                                    '      <li><a href="javascript:void(0);" class="specify_job_trigger" >'+ I18n.jobinfo_opt_specify_run +'</a></li>\n' +
                                     '       <li><a href="'+ logHref +'">'+ I18n.jobinfo_opt_log +'</a></li>\n' +
                                     '       <li><a href="javascript:void(0);" class="job_registryinfo" >' + I18n.jobinfo_opt_registryinfo + '</a></li>\n' +
                                     '       <li><a href="javascript:void(0);" class="job_next_time" >' + I18n.jobinfo_opt_next_time + '</a></li>\n' +
@@ -277,6 +278,44 @@ $(function() {
     });
     $("#jobTriggerModal").on('hide.bs.modal', function () {
         $("#jobTriggerModal .form")[0].reset();
+    });
+
+    // specify job trigger
+    $("#job_list").on('click', '.specify_job_trigger',function() {
+        var id = $(this).parents('ul').attr("_id");
+        var row = tableData['key'+id];
+
+        $("#specifyJobTriggerModal .form input[name='id']").val( row.id );
+        $("#specifyJobTriggerModal .form textarea[name='host']").val( row.host );
+        $("#specifyJobTriggerModal .form textarea[name='port']").val( row.port );
+        $("#specifyJobTriggerModal .form textarea[name='executorParam']").val( row.executorParam );
+
+        $('#specifyJobTriggerModal').modal({backdrop: false, keyboard: false}).modal('show');
+    });
+    $("#specifyJobTriggerModal .ok").on('click',function() {
+        $.ajax({
+            type : 'POST',
+            url : base_url + "/jobinfo/specify/trigger",
+            data : {
+                "id" : $("#specifyJobTriggerModal .form input[name='id']").val(),
+                "host" : $("#specifyJobTriggerModal .textarea[name='host']").val(),
+                "port" : $("#specifyJobTriggerModal .textarea[name='port']").val(),
+                "executorParam" : $("#specifyJobTriggerModal .textarea[name='executorParam']").val()
+            },
+            dataType : "json",
+            success : function(data){
+                if (data.code == 200) {
+                    $('#specifyJobTriggerModal').modal('hide');
+
+                    layer.msg( I18n.jobinfo_opt_run + I18n.system_success );
+                } else {
+                    layer.msg( data.msg || I18n.jobinfo_opt_run + I18n.system_fail );
+                }
+            }
+        });
+    });
+    $("#specifyJobTriggerModal").on('hide.bs.modal', function () {
+        $("#specifyJobTriggerModal .form")[0].reset();
     });
 
 

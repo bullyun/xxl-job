@@ -421,6 +421,47 @@ exit 0
     </div>
 </div>
 
+<#-- specify trigger -->
+<div class="modal fade" id="specifyJobTriggerModal" tabindex="-1" role="dialog"  aria-hidden="true">
+    <div class="modal-dialog ">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" >${I18n.jobinfo_opt_specify_run}</h4>
+            </div>
+            <div class="modal-body">
+                <form class="form-horizontal form" role="form" >
+                    <div class="form-group">
+                        <label for="firstname" class="col-sm-2 control-label">${I18n.jobinfo_field_jobgroup_host}<font color="black">*</font></label>
+                        <div class="col-sm-5">
+                            <textarea class="textarea form-control" name="host" placeholder="${I18n.system_please_input}${I18n.jobinfo_field_jobgroup_host}" maxlength="256" style="height: 43px; line-height: 1.2;"></textarea>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="firstname" class="col-sm-2 control-label">${I18n.jobinfo_field_jobgroup_port}<font color="black">*</font></label>
+                        <div class="col-sm-5">
+                            <textarea class="textarea form-control" name="port" placeholder="${I18n.system_please_input}${I18n.jobinfo_field_jobgroup_port}" maxlength="256" style="height: 43px; line-height: 1.2;"></textarea>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="firstname" class="col-sm-2 control-label">${I18n.jobinfo_field_executorparam}<font color="black">*</font></label>
+                        <div class="col-sm-10">
+                            <textarea class="textarea form-control" name="executorParam" placeholder="${I18n.system_please_input}${I18n.jobinfo_field_executorparam}" maxlength="512" style="height: 63px; line-height: 1.2;"></textarea>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="form-group">
+                        <div class="col-sm-offset-3 col-sm-6">
+                            <button type="button" class="btn btn-primary ok" >${I18n.system_save}</button>
+                            <button type="button" class="btn btn-default" data-dismiss="modal">${I18n.system_cancel}</button>
+                            <input type="hidden" name="id" >
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 <@netCommon.commonScript />
 <!-- DataTables -->
 <script src="${request.contextPath}/static/adminlte/bower_components/datatables.net/js/jquery.dataTables.min.js"></script>
